@@ -20,7 +20,12 @@
     <link rel="stylesheet" href='https://cdnjs.cloudflare.com/ajax/libs/dragula/3.7.2/dragula.css'>
     <script src='https://cdnjs.cloudflare.com/ajax/libs/dragula/3.7.2/dragula.min.js' defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.15/lodash.min.js"></script>
-    <script type="module" src="{{ url_for('static', filename='js/main.js') }}" defer></script>
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <script type="module" src="{{ url_for('static', filename='js/main.js')}}" defer></script>
+     <!-- ios support -->
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename = 'images/icons/icon-96x96.png') }}">
+    <meta name="apple-mobile-web-app-status-bar" content="#8fa2b1">
+    <meta name="theme-color" content="#fff"/>
 </head>
 <body>
 
@@ -28,14 +33,14 @@
 
 
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
-<!--        <a class="navbar-brand" href="#">Proman</a>-->
+        <!--        <a class="navbar-brand" href="#">Proman</a>-->
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup"
                 aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation" id="nav1">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
             <div class="navbar-nav">
-<!--                <a class="nav-item nav-link active" href="#">Home <span class="sr-only">(current)</span></a>-->
+                <!--                <a class="nav-item nav-link active" href="#">Home <span class="sr-only">(current)</span></a>-->
                 <!-- Modal Button Register-->
                 <button type="button" class="btn" data-toggle="modal" data-target="#exampleModal" id="nav2">
                     Register
@@ -44,25 +49,31 @@
                 <button type="button" class="btn " data-toggle="modal" data-target="#loginModal" id="nav3">
                     Login
                 </button>
+                <button type="button" class="btn" id="nav4">
+                    Refresh
+                </button>
             </div>
         </div>
     </nav>
 
 
 {% else %}
-        <nav class="navbar navbar-expand-lg navbar-light bg-light">
-<!--        <a class="navbar-brand" href="#">Proman</a>-->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <!--        <a class="navbar-brand" href="#">Proman</a>-->
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup"
                 aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation" id="nav1">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
             <div class="navbar-nav">
-<!--                <a class="nav-item nav-link active" href="#">Home <span class="sr-only">(current)</span></a>-->
+                <!--                <a class="nav-item nav-link active" href="#">Home <span class="sr-only">(current)</span></a>-->
                 <span class="btn">{{ logged_in }}</span>
                 <a href="/logout"><button type="button" class="btn " data-toggle="modal" data-target="#loginModal" id="nav2">
                     Logout
                 </button></a>
+                <button type="button" class="btn" id="nav4">
+                    Refresh
+                </button>
 
             </div>
         </div>
@@ -85,8 +96,13 @@
     <div id="topnav" class="navbar navbar-light bg-light">
         <h1>ProMan</h1>
         <button type="button" class="btn btn-light rounded border-secondary" data-toggle="modal" data-target="#exampleModalNewBoard" id="newBoardButton">
-            + New Board
+            + New Public Board
         </button>
+        {% if logged_in %}
+        <button type="button" class="btn btn-light rounded border-secondary" data-toggle="modal" data-target="#exampleModalNewPrivateBoard" id="newPrivateBoardButton">
+            + New Private Board
+        </button>
+        {% endif %}
     </div>
 </div>
 
@@ -104,7 +120,8 @@
                 <form action=" {{ url_for('create_new_board') }} " method="post">
                     <div class="form-group">
                         <label for="board-title" class="col-form-label">Title:</label>
-                        <input type="text" class="form-control" name="board-title" id="board-title" placeholder="Enter the title here">
+                        <input type="text" class="form-control" name="board-title" id="board-title"
+                               placeholder="Enter the title here">
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -117,12 +134,44 @@
         </div>
     </div>
 </div>
+
+{% if logged_in %}
+<div class="modal fade" id="exampleModalNewPrivateBoard" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Private board title</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form action=" {{ url_for('create_private_new_board') }} " method="post">
+                    <div class="form-group">
+                        <label for="board-title" class="col-form-label">Title:</label>
+                        <input type="text" class="form-control" name="private-board-title" id="board-title" placeholder="Enter the title here">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Save changes</button>
+                    </div>
+                </form>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endif %}
+
 <div id="boards"></div>
 
 
 
 
 
+<div id="boards"></div>
 
 
 <script src="https://code.jquery.com/jquery-3.4.1.min.js"
@@ -135,6 +184,7 @@
         integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
         crossorigin="anonymous"></script>
 <script src="{{ url_for('static', filename="js/form.js") }}"></script>
+
 
 </body>
 </html>
